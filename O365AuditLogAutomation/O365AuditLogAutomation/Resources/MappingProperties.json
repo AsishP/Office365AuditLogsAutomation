@@ -1,0 +1,31 @@
+//// Audit Data property mapping in case of enums. More details at - https://docs.microsoft.com/en-us/office/office-365-management-api/office-365-management-activity-api-schema
+{
+  "UserType": {
+    "0": "Regular User",
+    "2": "Tenant Administrator",
+    "3": "Microsoft Datacenter administrator or datacenter system account",
+    "4": "System account",
+    "5": "Application",
+    "6": "Service principal"
+  },
+  "RecordType": {
+    "1": "Exchange admin audit log",
+    "2": "Exchange Mailbox Audit log item on a singled mailbox item",
+    "3": "Exchange mailbox Audit log item on multiple items in the source mailbox such as Deleting",
+    "4": "SharePoint Site Admin operation",
+    "6": "SharePoint File or Folder operation",
+    "8": "Admin operation in Azure AD",
+    "10": "Security cmdlet event by Microsoft personnel",
+    "11": "DLP event in SharePoint",
+    "12": "Sway event",
+    "14": "SharePoint Sharing",
+    "15": "STS logon in Azure AD",
+    "18": "Security & Compliance Center event",
+    "20": "Power BI event",
+    "22": "Yammer event",
+    "24": "eDiscovery event",
+    "25": "Microsoft Teams events",
+    "26": "Microsoft Teams events",
+    "27": "Microsoft Teams events"
+  }
+}
