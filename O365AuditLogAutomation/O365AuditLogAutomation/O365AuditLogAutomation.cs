@@ -40,7 +40,7 @@ namespace O365AuditLogAutomation
             ////        "AuditLogDataTablePrefix": <Partition Key Prefix for easy retrival>,
             ////        "AuditLogOpsTablePrefix": <Analytics Partition Key Prefic for easy retrival>,
             ////        "TenantID": <Tenant ID for the App>,
-            ////        "AuditLogResourceId": "https://manage.office.com",
+            ////        "AuditLogAuthUrl": "https://manage.office.com",
             ////        "AzureADAppID": <Azure App ID>,
             ////        "AzureADAppSecret": <Azure App secret>
             ////      }
@@ -49,7 +49,7 @@ namespace O365AuditLogAutomation
             string TenantID = System.Environment.GetEnvironmentVariable("TenantID");
             string authString = "https://login.windows.net/" + TenantID;
             string SPServiceUrl = "https://manage.office.com/api/v1.0/" + TenantID + "/activity/feed/subscriptions/content";
-            string resourceId = System.Environment.GetEnvironmentVariable("AuditLogResourceId");
+            string authUrl = System.Environment.GetEnvironmentVariable("AuditLogAuthUrl");
             string clientId = System.Environment.GetEnvironmentVariable("AzureADAppID");
             string clientSecret = System.Environment.GetEnvironmentVariable("AzureADAppSecret");
             #endregion
@@ -61,7 +61,7 @@ namespace O365AuditLogAutomation
                 //// Config for OAuth client credentials 
                 ClientCredential clientCred = new ClientCredential(clientId, clientSecret);
                 AuthenticationResult authenticationResult = null;
-                Task runTask = Task.Run(async () => authenticationResult = await authenticationContext.AcquireTokenAsync(resourceId, clientCred));
+                Task runTask = Task.Run(async () => authenticationResult = await authenticationContext.AcquireTokenAsync(authUrl, clientCred));
                 runTask.Wait();
                 string token = authenticationResult.AccessToken;
 
