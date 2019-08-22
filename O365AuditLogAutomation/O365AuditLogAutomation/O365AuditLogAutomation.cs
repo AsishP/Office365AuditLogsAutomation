@@ -25,26 +25,26 @@ namespace O365AuditLogAutomation
 
             //// Set the Variables. For local debugging, use localsettings.json (see below) and for Azure Function, use Configuration in Platform Features
             ///  for eg  - localsettings.json
-            ////{
-            ////    "IsEncrypted": false,
-            ////      "Values": {
-            ////        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-            ////        "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
-            ////        "StorageConnectionString": <storage connection string for .net>,
-            ////        "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-            ////        "AuditLogDataTable": <Azure Table Name>,
-            ////        "AuditLogAnalyticsTable": <O365 Audit log capture table for this function>,
-            ////        "AuditLogCSVExportLocation": <Azure >,
-            ////        "SPUserName": <SharePoint Admin User Name>,
-            ////        "SPUserPassword": <SharePoint Admin Password>,
-            ////        "AuditLogDataTablePrefix": <Partition Key Prefix for easy retrival>,
-            ////        "AuditLogOpsTablePrefix": <Analytics Partition Key Prefic for easy retrival>,
-            ////        "TenantID": <Tenant ID for the App>,
-            ////        "AuditLogAuthUrl": "https://manage.office.com",
-            ////        "AzureADAppID": <Azure App ID>,
-            ////        "AzureADAppSecret": <Azure App secret>
-            ////      }
-            ////}
+            //{
+            //    "IsEncrypted": false,
+            //      "Values": {
+            //        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+            //        "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
+            //        "StorageConnectionString": "<connection string for Azure storage account in .net>",
+            //         "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+            //         "AuditLogDataTable": "<Azure Table Name>",
+            //         "AuditLogAnalyticsTable": "<O365 Audit log capture table for this function>",
+            //          "AuditLogCSVExportLocation": "<Azure>",
+            //          "SPUserName": "<SharePoint Admin User Name>",
+            //          "SPUserPassword": "<SharePoint Admin Password>",
+            //          "AuditLogDataTablePrefix": "<Partition Key Prefix for easy retrival>",
+            //           "AuditLogOpsTablePrefix": "<Analytics Partition Key Prefic for easy retrival>",
+            //            "TenantID": "<Tenant ID for the App>",
+            //             "AuditLogAuthUrl": "https://manage.office.com",
+            //             "AzureADAppID": "<Azure App ID>",
+            //             "AzureADAppSecret": "<Azure App secret>"
+            //      }
+            //}
 
             string TenantID = System.Environment.GetEnvironmentVariable("TenantID");
             string authString = "https://login.windows.net/" + TenantID;
