@@ -24,7 +24,8 @@ namespace O365AuditLogAutomation
             #region "Variables"
 
             //// Set the Variables. For local debugging, use localsettings.json (see below) and for Azure Function, use Configuration in Platform Features
-            ///  for eg  - localsettings.json
+            ///  for eg  - local.settings.json
+            ///  Note : Please replace all the strings with < > with the open bracket and close brackets
             //{
             //    "IsEncrypted": false,
             //      "Values": {
