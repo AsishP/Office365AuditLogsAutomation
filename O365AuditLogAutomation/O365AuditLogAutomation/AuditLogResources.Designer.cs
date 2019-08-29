@@ -39,7 +39,7 @@ namespace O365AuditLogAutomation {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("O365MgmtDataPullTimer_Current.AuditLogResources", typeof(AuditLogResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("O365AuditLogAutomation.AuditLogResources", typeof(AuditLogResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
