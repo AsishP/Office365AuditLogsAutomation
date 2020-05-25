@@ -19,7 +19,7 @@ namespace O365AuditLogAutomation
         {
             var parentProperties = parent.GetType().GetProperties();
             var childProperties = child.GetType().GetProperties();
-
+            
             foreach (var parentProperty in parentProperties)
             {
                 foreach (var childProperty in childProperties)

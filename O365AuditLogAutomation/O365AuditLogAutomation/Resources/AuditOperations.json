@@ -35,6 +35,17 @@
     "FolderModified",
     "AddedToGroup",
     "UserAddedToGroup",
-    "UserRemovedFromGroup"
+    "UserRemovedFromGroup",
+    "ListItemCreated",
+    "PageViewed",
+    "SearchQueryPerformed",
+    "ListItemUpdated",
+    "PagePrefetched",
+    "PageViewedExtended",
+    "FileModified",
+    "FileModifiedExtended",
+    "FileCheckedOut",
+    "FileCheckedIn",
+    "ClientViewSignaled"
   ]
 }

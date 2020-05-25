@@ -358,10 +358,10 @@ namespace O365AuditLogAutomation
         /// Initializing the Audit log class
         /// </summary>
         /// <returns></returns>
-        public AuditLogAnalyticsDataInfo getInitialAnalyticsInfo()
+        public AuditLogAnalyticsDataInfo getInitialAnalyticsInfo(int startH, int endH)
         {
-            DateTime startHour = AuditLogDateTime.AddHours(-3);
-            DateTime endHour = AuditLogDateTime.AddHours(-2);
+            DateTime startHour = AuditLogDateTime.AddHours(-startH);
+            DateTime endHour = AuditLogDateTime.AddHours(-endH);
 
             return new AuditLogAnalyticsDataInfo
             {

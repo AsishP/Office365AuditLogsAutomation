@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Extensions.Logging;
+using System.Windows.Forms;
+using System.Linq.Expressions;
 
 /// <summary>
 /// Main Audit Log Data Controller class
@@ -17,7 +19,7 @@ namespace O365AuditLogAutomation
 
         //// Set the timer in the timer trigger to run - More Info at here - https://docs.microsoft.com/en-us/azure/azure-functions/functions-bindings-timer#c-example
         //// Note: this Function App is using Azure Funciton 1.x because of SharePoint CSOM dependency but can be used on Azure Function 2.x
-        public static void Run([TimerTrigger("0 0 */1 * * *")]TimerInfo myTimer, ILogger log, TraceWriter logWriter)
+        public static void Run([TimerTrigger("0 0 */1 * * *", RunOnStartup = true)]TimerInfo myTimer, ILogger log, TraceWriter logWriter)
         {
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
             logWriter.Info($"C# Timer trigger function executed at: {DateTime.Now}");
@@ -59,6 +61,8 @@ namespace O365AuditLogAutomation
             {
                 //// **** Get the Authentication Token ****
                 var authenticationContext = new AuthenticationContext(authString, false);
+                authenticationContext.ExtendedLifeTimeEnabled = true;
+
                 //// Config for OAuth client credentials 
                 ClientCredential clientCred = new ClientCredential(clientId, clientSecret);
                 AuthenticationResult authenticationResult = null;
@@ -66,67 +70,94 @@ namespace O365AuditLogAutomation
                 runTask.Wait();
                 string token = authenticationResult.AccessToken;
 
-                O365MgmtAPIDataService dataService = new O365MgmtAPIDataService(token, log);
-                AuditLogAnalyticsDataInfo auditLogAnalyticsDataInfo = dataService.getInitialAnalyticsInfo();
+                int startCount = 160;
+                int endCount = 480;
+                int increments = (endCount - startCount) / 20;
 
-                if(dataService.updateAnalyticsDataToTable(auditLogAnalyticsDataInfo))
+                int startHour = 0;
+                int endHour = 0;
+
+                for(int i = startCount/20; i <= increments; i++)
                 {
-                    //// Get the time zone of the destination tenant. The date and time used by Audit log service is UTC format.
-                    TimeZoneInfo aestTimeZone = TimeZoneInfo.FindSystemTimeZoneById("AUS Eastern Standard Time");
-                    DateTime startHourUTC = TimeZoneInfo.ConvertTimeToUtc(auditLogAnalyticsDataInfo.StartHour, aestTimeZone);
-                    DateTime endHourUTC = TimeZoneInfo.ConvertTimeToUtc(auditLogAnalyticsDataInfo.EndHour, aestTimeZone);
-                    string startDateString = startHourUTC.ToUniversalTime().ToString("yyyy-MM-ddTHH:00");
-                    string endDateString = endHourUTC.ToString("yyyy-MM-ddTHH:00");
+                    endHour = i * 20;
+                    startHour = (i + 1) * 20;
 
-                    //// ****************** Step 1: Start the audit log gathering process *****************
-                    log.LogInformation($"getting Data from {startDateString} to {endDateString}");
-                    //// Here I am fetching SharePoint events.
-                    string urlParameters = $"?contentType=Audit.SharePoint&startTime={startDateString}&endTime={endDateString}";
-                    
-                    //// Initialize the audit log data information
-                    AuditInitialDataObject auditInitialDataObject = new AuditInitialDataObject();
-                    List<AuditDetailedReport> auditDetailReportsFinal = new List<AuditDetailedReport>();
-
-                    //// Loop through the detail URI information provided by the initial data call till there is no next page to be read
-                    do
+                    try
                     {
-                        auditInitialDataObject = dataService.getAuditInitalData(SPServiceUrl, urlParameters);
-                        if (auditInitialDataObject.AuditNextPageUri != "")
-                            urlParameters = "?" + auditInitialDataObject.AuditNextPageUri.Split('?')[1];
-                        List<AuditInitialReport> auditInitialReports = auditInitialDataObject.AuditInitialDataObj;
-                        
-                        //// set batch size = 200. Note : Above 500 the speed decreases drastically as per my tests.
-                        int maxCalls = 200;
-                        int count = 0;
-                        
-                        //// **************** Step 2: For each of the calls call the detailed data fetch api in batches. Here the batch = 200 ***********************
-                        Parallel.ForEach(auditInitialReports, new ParallelOptions { MaxDegreeOfParallelism = maxCalls }, (auditInitialReport) =>
+                        log.LogInformation($"Started pulling for now - {startHour} to now - {endHour}");
+
+                        O365MgmtAPIDataService dataService = new O365MgmtAPIDataService(token, log);
+                        AuditLogAnalyticsDataInfo auditLogAnalyticsDataInfo = dataService.getInitialAnalyticsInfo(startHour, endHour);
+
+                        if (dataService.updateAnalyticsDataToTable(auditLogAnalyticsDataInfo))
                         {
-                            int loopCount = count++;
-                            log.LogInformation("Looking at request " + loopCount);
-                            List<AuditDetailedReport> auditDetailReports = dataService.getAuditDetailData(auditInitialReport.ContentUri);
-                            log.LogInformation("Got Audit Detail Reports of " + auditDetailReports.Count + " for loop number " + loopCount);
-                            foreach (AuditDetailedReport auditDetailReport in auditDetailReports)
+                            //// Get the time zone of the destination tenant. The date and time used by Audit log service is UTC format.
+                            TimeZoneInfo aestTimeZone = TimeZoneInfo.FindSystemTimeZoneById("AUS Eastern Standard Time");
+                            DateTime startHourUTC = TimeZoneInfo.ConvertTimeToUtc(auditLogAnalyticsDataInfo.StartHour, aestTimeZone);
+                            DateTime endHourUTC = TimeZoneInfo.ConvertTimeToUtc(auditLogAnalyticsDataInfo.EndHour, aestTimeZone);
+                            string startDateString = startHourUTC.ToUniversalTime().ToString("yyyy-MM-ddTHH:00");
+                            string endDateString = endHourUTC.ToString("yyyy-MM-ddTHH:00");
+
+                            //// ****************** Step 1: Start the audit log gathering process *****************
+                            log.LogInformation($"getting Data from {startDateString} to {endDateString}");
+                            //// Here I am fetching SharePoint events.
+                            string urlParameters = $"?contentType=Audit.SharePoint&startTime={startDateString}&endTime={endDateString}";
+
+                            //// Initialize the audit log data information
+                            AuditInitialDataObject auditInitialDataObject = new AuditInitialDataObject();
+                            List<AuditDetailedReport> auditDetailReportsFinal = new List<AuditDetailedReport>();
+
+                            //// Loop through the detail URI information provided by the initial data call till there is no next page to be read
+                            do
                             {
-                                auditDetailReportsFinal.Add(auditDetailReport);
-                            }
-                        });
-                    } while (auditInitialDataObject.AuditNextPageUri != "");
-                    log.LogInformation("Final Audit Detail Reports" + auditDetailReportsFinal.Count);
+                                auditInitialDataObject = dataService.getAuditInitalData(SPServiceUrl, urlParameters);
+                                if (auditInitialDataObject != null)
+                                {
+                                    if (auditInitialDataObject.AuditNextPageUri != null && auditInitialDataObject.AuditNextPageUri != "")
+                                        urlParameters = "?" + auditInitialDataObject.AuditNextPageUri.Split('?')[1];
+                                    List<AuditInitialReport> auditInitialReports = auditInitialDataObject.AuditInitialDataObj;
 
-                    //// *************** Step 3 : Update additional properties to the Audit log data ***************************
-                    int maxAuditUpdateCalls = 200;
-                    Parallel.ForEach(auditDetailReportsFinal, new ParallelOptions { MaxDegreeOfParallelism = maxAuditUpdateCalls }, (auditDetailReport) =>
+                                    //// set batch size = 200. Note : Above 500 the speed decreases drastically as per my tests.
+                                    int maxCalls = 200;
+                                    int count = 0;
+
+                                    //// **************** Step 2: For each of the calls call the detailed data fetch api in batches. Here the batch = 200 ***********************
+                                    Parallel.ForEach(auditInitialReports, new ParallelOptions { MaxDegreeOfParallelism = maxCalls }, (auditInitialReport) =>
+                                    {
+                                        int loopCount = count++;
+                                        log.LogInformation("Looking at request " + loopCount);
+                                        List<AuditDetailedReport> auditDetailReports = dataService.getAuditDetailData(auditInitialReport.ContentUri);
+                                        log.LogInformation("Got Audit Detail Reports of " + auditDetailReports.Count + " for loop number " + loopCount);
+                                        foreach (AuditDetailedReport auditDetailReport in auditDetailReports)
+                                        {
+                                            auditDetailReportsFinal.Add(auditDetailReport);
+                                        }
+                                    });
+
+                                }
+
+                            } while (auditInitialDataObject.AuditNextPageUri != "");
+                            log.LogInformation("Final Audit Detail Reports" + auditDetailReportsFinal.Count);
+
+                            //// *************** Step 3 : Update additional properties to the Audit log data ***************************
+                            int maxAuditUpdateCalls = 200;
+                            Parallel.ForEach(auditDetailReportsFinal, new ParallelOptions { MaxDegreeOfParallelism = maxAuditUpdateCalls }, (auditDetailReport) =>
+                            {
+                                auditDetailReport = dataService.mapOrUpdateProperties(auditDetailReport);
+                            });
+
+                            //// **************** Step 4 : Add Data to Azure Table ****************
+                            auditLogAnalyticsDataInfo = dataService.addDatatoAzureStore(auditDetailReportsFinal, auditLogAnalyticsDataInfo);
+
+                            //// **************** Step 5 : Update the Report analytics for each Audit log run *******************
+                            dataService.updateAnalyticsDataToTable(auditLogAnalyticsDataInfo);
+                        }
+                    }
+                    catch(Exception ex1)
                     {
-                        auditDetailReport = dataService.mapOrUpdateProperties(auditDetailReport);
-                    });
-
-                    //// **************** Step 4 : Add Data to Azure Table ****************
-                    auditLogAnalyticsDataInfo = dataService.addDatatoAzureStore(auditDetailReportsFinal, auditLogAnalyticsDataInfo);
-
-                    //// **************** Step 5 : Update the Report analytics for each Audit log run *******************
-                    dataService.updateAnalyticsDataToTable(auditLogAnalyticsDataInfo);
-
+                        log.LogError($"error occurred {ex1.Message}");
+                    }
+                        
                 }
             }
             catch (Exception ex)
